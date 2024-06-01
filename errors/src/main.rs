@@ -6,7 +6,20 @@ struct ExampleError;
 
 impl std::fmt::Display for ExampleError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "An example error occurred")
+        write!(f, "ExampleError occurred")
+    }
+}
+
+#[derive(Debug, ThisError)]
+enum EnumError {
+    Example(#[from] ExampleError),
+}
+
+impl std::fmt::Display for EnumError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            EnumError::Example(_) => write!(f, "EnumErrror::Example occurred"),
+        }
     }
 }
 
@@ -20,6 +33,16 @@ fn report(error: &(dyn Error + 'static)) {
     }
 }
 
+fn map_me() -> Result<(), ExampleError> {
+    Err(ExampleError {})
+}
+
 fn main() {
     report(&ExampleError);
+    report(&EnumError::Example(ExampleError));
+
+    let m = map_me().map_err(EnumError::Example);
+    if let Err(ref e) = m {
+        report(e);
+    }
 }
