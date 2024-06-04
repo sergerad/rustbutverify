@@ -7,5 +7,5 @@
 //}
 
 fn main() {
-    println!("Hello, world!");
+    println!("See the starter package for a solution to the orphan rule");
 }
