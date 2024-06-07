@@ -41,7 +41,7 @@ impl WorkerBuilder<NoWorkload> {
 }
 
 // Generic fn for building worker from builder
-impl<W: Workload + Clone> WorkerBuilder<W> {
+impl<W: Workload> WorkerBuilder<W> {
     pub fn build(self) -> Worker<W> {
         Worker {
             workload: self.workload,
