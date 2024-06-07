@@ -42,9 +42,9 @@ impl WorkerBuilder<NoWorkload> {
 
 // Generic fn for building worker from builder
 impl<W: Workload + Clone> WorkerBuilder<W> {
-    pub fn build(&mut self) -> Worker<W> {
+    pub fn build(self) -> Worker<W> {
         Worker {
-            workload: self.workload.clone(),
+            workload: self.workload,
             mem_size: self.mem_size,
             keep_alive: self.keep_alive,
         }
