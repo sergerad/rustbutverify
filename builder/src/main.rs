@@ -5,11 +5,10 @@ use builder::worker_builder::WorkerBuilder;
 // Rust has no variadic argument list for functions (e.g. println!() is a marcro, not a func that takes variadic arguments).
 // Rust has no default values for function arguments.
 fn main() {
-    // Create a builder, then worker (try doing it all in one line to see compiler complain)
-    let hello_worker = WorkerBuilder::default()
+    // Create worker from builder
+    let hello_worker = WorkerBuilder::new(HelloWorkload("hello world"))
         .mem_size(256 * 1024)
         .keep_alive(true)
-        .workload(HelloWorkload("hello world"))
         .build();
 
     // Do work (could add a fn from worker to avoid using workload directly)

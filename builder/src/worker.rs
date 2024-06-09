@@ -9,9 +9,3 @@ pub struct Worker<W> {
 pub trait Workload {
     fn work(&self);
 }
-
-// NoWorkload allows empty builders to be created
-pub struct NoWorkload;
-impl Workload for NoWorkload {
-    fn work(&self) {}
-}
