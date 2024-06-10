@@ -1,5 +1,5 @@
 [workspace]
 
 resolver = "2"
-members = [ "builder","errors", "orphan", "starter"]
+members = [ "builder","errors", "list", "orphan", "starter"]
 
