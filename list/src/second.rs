@@ -2,10 +2,7 @@ pub struct List {
     pub head: Link,
 }
 
-pub enum Link {
-    Empty,
-    More(Box<Node>),
-}
+type Link = Option<Box<Node>>;
 
 pub struct Node {
     pub elem: i32,
@@ -14,7 +11,7 @@ pub struct Node {
 
 impl std::default::Default for List {
     fn default() -> Self {
-        List { head: Link::Empty }
+        List { head: None }
     }
 }
 
@@ -24,33 +21,29 @@ impl List {
         let new_head = Box::new(Node {
             elem,
             // Take the old head (move by replace, b/c &mut self)
-            next: std::mem::replace(&mut self.head, Link::Empty),
+            next: self.head.take(),
         });
         // Set the new head
-        self.head = Link::More(new_head);
+        self.head = Some(new_head);
     }
 
     pub fn pop(&mut self) -> Option<i32> {
-        // Move the old head out
-        match std::mem::replace(&mut self.head, Link::Empty) {
-            Link::Empty => None,
+        self.head.take().map(|node| {
             // Set current head to old's next and return value
-            Link::More(old_head) => {
-                self.head = old_head.next;
-                Some(old_head.elem)
-            }
-        }
+            self.head = node.next;
+            node.elem
+        })
     }
 }
 
 impl Drop for List {
     fn drop(&mut self) {
         // Take head
-        let mut link = std::mem::replace(&mut self.head, Link::Empty);
+        let mut link = self.head.take();
 
         // Take all nodes
-        while let Link::More(mut node) = link {
-            link = std::mem::replace(&mut node.next, Link::Empty);
+        while let Some(mut node) = link {
+            link = node.next.take();
         }
     }
 }
