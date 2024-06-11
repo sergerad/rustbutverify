@@ -13,5 +13,7 @@ fn main() -> Result<()> {
         let entry: String = NewType(&entry).try_into()?;
         println!("{entry:?}");
     }
+
+    println!("{}", Error::Generic("hellowirl".to_string()));
     Ok(())
 }
