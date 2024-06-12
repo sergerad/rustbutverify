@@ -10,21 +10,6 @@ pub struct Node<T> {
     pub next: Link<T>,
 }
 
-pub struct IterMut<'a, T> {
-    next: Option<&'a mut Node<T>>,
-}
-
-impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = &'a mut T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next.take().map(|node| {
-            self.next = node.next.as_deref_mut();
-            &mut node.elem
-        })
-    }
-}
-
 impl<T> List<T> {
     pub fn push(&mut self, elem: T) {
         // Create a new head which points to the old head
@@ -75,6 +60,21 @@ impl<T> Drop for List<T> {
         while let Some(mut node) = link {
             link = node.next.take();
         }
+    }
+}
+
+pub struct IterMut<'a, T> {
+    next: Option<&'a mut Node<T>>,
+}
+
+impl<'a, T> Iterator for IterMut<'a, T> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.take().map(|node| {
+            self.next = node.next.as_deref_mut();
+            &mut node.elem
+        })
     }
 }
 
