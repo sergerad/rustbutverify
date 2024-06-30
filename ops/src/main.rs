@@ -18,6 +18,6 @@ fn main() {
     // fnOnce: move captured String
     let move_me = "x".to_string();
     let fn_once = || move_me;
-    let moved_me = Some("s".to_string()).unwrap_or_else(fn_once);
+    let moved_me = None.unwrap_or_else(fn_once);
     println!("moved_x: {:?}", moved_me);
 }
