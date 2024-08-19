@@ -67,5 +67,5 @@ fn main() {
     let a: Vec<FieldElement> = (1..=n).map(|a| FieldElement::new(a, p)).collect();
     let x = FieldElement::new(511, p);
     let y = hash(&a, x);
-    println!("h(a, x={}, p={}) = {}", x, p, y);
+    println!("h(a, x={x}, p={p}) = {y}");
 }
