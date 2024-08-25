@@ -4,10 +4,16 @@ use num_traits::One;
 use std::ops::{Add, AddAssign, Deref, Mul, Sub};
 
 // Represents a field element in the prime field.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct FieldElement<'a> {
     value: BigInt,
     prime: &'a BigInt,
+}
+
+impl std::fmt::Debug for FieldElement<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
 }
 
 impl<'a> FieldElement<'a> {

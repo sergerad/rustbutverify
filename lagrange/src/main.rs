@@ -15,15 +15,18 @@ fn main() {
         FieldElement::new(BigInt::from(2), &p),
         FieldElement::new(BigInt::from(0), &p),
     ];
+    println!("    a = {:?}", input);
 
     // Compute the Lagrange interpolation polynomial.
     let l = lagrange_interpolation(input, &p);
 
     // Evaluate the polynomial at all elements of the prime field.
+    let mut evaluations = Vec::new();
     let field_len = usize::try_from(p.clone()).unwrap();
     for elem in 0..field_len {
         let x = FieldElement::new(BigInt::from(elem), &p);
         let y = l.evaluate(&x);
-        println!("P({}) = {}", *x, *y);
+        evaluations.push(y);
     }
+    println!("LDE(a)= {:?}", evaluations);
 }
