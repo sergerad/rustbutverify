@@ -1,5 +1,7 @@
 use crate::field::FieldElement;
 
+use itertools::EitherOrBoth::{Both, Left, Right};
+use itertools::Itertools;
 use num_bigint::BigInt;
 use num_traits::{One, Zero};
 use std::ops::{Add, Mul};
@@ -44,19 +46,17 @@ impl<'a> Add<Polynomial<'a>> for Polynomial<'a> {
     fn add(self, other: Polynomial<'a>) -> Self::Output {
         assert_eq!(self.prime, other.prime);
 
-        // Initialize the coefficients to the maximum length of the two polynomials.
-        let mut coefficients = vec![
-            FieldElement::new(BigInt::zero(), self.prime);
-            usize::max(self.coefficients.len(), other.coefficients.len())
-        ];
-
         // Add the coefficients of the two polynomials.
-        for (i, coeff) in self.coefficients.iter().enumerate() {
-            coefficients[i] += coeff.clone();
-        }
-        for (i, coeff) in other.coefficients.iter().enumerate() {
-            coefficients[i] += coeff.clone();
-        }
+        let coefficients = self
+            .coefficients
+            .iter()
+            .zip_longest(other.coefficients.iter())
+            .map(|pair| match pair {
+                Both(a, b) => a.clone() + b.clone(),
+                Left(a) => a.clone(),
+                Right(b) => b.clone(),
+            })
+            .collect();
 
         Polynomial::new(coefficients, self.prime)
     }
