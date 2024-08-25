@@ -6,17 +6,17 @@ use std::ops::{Add, Mul};
 
 // Represents a univariate polynomial over a prime field.
 #[derive(Clone, Debug)]
-pub struct Polynomial {
-    coefficients: Vec<FieldElement>,
-    prime: BigInt,
+pub struct Polynomial<'a> {
+    coefficients: Vec<FieldElement<'a>>,
+    prime: &'a BigInt,
 }
 
-impl Polynomial {
+impl<'a> Polynomial<'a> {
     // Creates a new polynomial from the given coefficients.
-    pub fn new(coefficients: Vec<FieldElement>, prime: BigInt) -> Self {
+    pub fn new(coefficients: Vec<FieldElement<'a>>, prime: &'a BigInt) -> Self {
         // Ensure all coefficients are in the same field
         for coef in &coefficients {
-            assert_eq!(coef.prime(), &prime);
+            assert_eq!(coef.prime(), prime);
         }
         Self {
             coefficients,
@@ -25,9 +25,9 @@ impl Polynomial {
     }
 
     // Evaluates the polynomial at a given field element, x.
-    pub fn evaluate(&self, x: &FieldElement) -> FieldElement {
-        let mut y = FieldElement::new(BigInt::zero(), self.prime.clone());
-        let mut exponent = FieldElement::new(BigInt::one(), self.prime.clone());
+    pub fn evaluate(&self, x: &FieldElement<'a>) -> FieldElement {
+        let mut y = FieldElement::new(BigInt::zero(), self.prime);
+        let mut exponent = FieldElement::new(BigInt::one(), self.prime);
 
         for coeff in &self.coefficients {
             y += coeff.clone() * exponent.clone();
@@ -38,15 +38,15 @@ impl Polynomial {
     }
 }
 
-impl Add<Polynomial> for Polynomial {
-    type Output = Polynomial;
+impl<'a> Add<Polynomial<'a>> for Polynomial<'a> {
+    type Output = Polynomial<'a>;
 
-    fn add(self, other: Polynomial) -> Self::Output {
+    fn add(self, other: Polynomial<'a>) -> Self::Output {
         assert_eq!(self.prime, other.prime);
 
         // Initialize the coefficients to the maximum length of the two polynomials.
         let mut coefficients = vec![
-            FieldElement::new(BigInt::zero(), self.prime.clone());
+            FieldElement::new(BigInt::zero(), self.prime);
             usize::max(self.coefficients.len(), other.coefficients.len())
         ];
 
@@ -58,19 +58,19 @@ impl Add<Polynomial> for Polynomial {
             coefficients[i] += coeff.clone();
         }
 
-        Polynomial::new(coefficients, self.prime.clone())
+        Polynomial::new(coefficients, self.prime)
     }
 }
 
-impl Mul<Polynomial> for Polynomial {
-    type Output = Polynomial;
+impl<'a> Mul<Polynomial<'a>> for Polynomial<'a> {
+    type Output = Polynomial<'a>;
 
-    fn mul(self, other: Polynomial) -> Self::Output {
+    fn mul(self, other: Polynomial<'a>) -> Self::Output {
         assert_eq!(self.prime, other.prime);
 
         // Initialize the coefficients to the sum of the lengths of the two polynomials.
         let mut new_coefficients = vec![
-            FieldElement::new(BigInt::zero(), self.prime.clone());
+            FieldElement::new(BigInt::zero(), self.prime);
             self.coefficients.len() + other.coefficients.len() - 1
         ];
 
@@ -81,19 +81,19 @@ impl Mul<Polynomial> for Polynomial {
             }
         }
 
-        Polynomial::new(new_coefficients, self.prime.clone())
+        Polynomial::new(new_coefficients, self.prime)
     }
 }
 
-impl Mul<FieldElement> for Polynomial {
-    type Output = Polynomial;
+impl<'a> Mul<&FieldElement<'a>> for Polynomial<'a> {
+    type Output = Polynomial<'a>;
 
-    fn mul(self, element: FieldElement) -> Self::Output {
+    fn mul(self, element: &FieldElement<'a>) -> Self::Output {
         let new_coefficients = self
             .coefficients
             .iter()
             .map(|coeff| coeff.clone() * element.clone())
             .collect();
-        Polynomial::new(new_coefficients, self.prime.clone())
+        Polynomial::new(new_coefficients, self.prime)
     }
 }

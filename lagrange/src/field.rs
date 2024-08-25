@@ -5,33 +5,33 @@ use std::ops::{Add, AddAssign, Deref, Mul, Sub};
 
 // Represents a field element in the prime field.
 #[derive(Clone, Debug)]
-pub struct FieldElement {
+pub struct FieldElement<'a> {
     value: BigInt,
-    prime: BigInt,
+    prime: &'a BigInt,
 }
 
-impl FieldElement {
+impl<'a> FieldElement<'a> {
     // Creates a new prime field element.
-    pub fn new(value: BigInt, prime: BigInt) -> Self {
+    pub fn new(value: BigInt, prime: &'a BigInt) -> Self {
         Self {
-            value: value.mod_floor(&prime),
+            value: value.mod_floor(prime),
             prime,
         }
     }
 
     // Computes the multiplicative inverse of the field element.
     pub fn inverse(&self) -> Self {
-        let e = self.value.extended_gcd(&self.prime);
+        let e = self.value.extended_gcd(self.prime);
         assert!(e.gcd.is_one(), "Value and prime must be coprime.");
-        FieldElement::new(e.x.mod_floor(&self.prime), self.prime.clone())
+        FieldElement::new(e.x.mod_floor(self.prime), self.prime)
     }
 
     pub fn prime(&self) -> &BigInt {
-        &self.prime
+        self.prime
     }
 }
 
-impl Deref for FieldElement {
+impl<'a> Deref for FieldElement<'a> {
     type Target = BigInt;
 
     fn deref(&self) -> &Self::Target {
@@ -39,7 +39,7 @@ impl Deref for FieldElement {
     }
 }
 
-impl Add for FieldElement {
+impl<'a> Add for FieldElement<'a> {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -48,7 +48,7 @@ impl Add for FieldElement {
     }
 }
 
-impl Sub for FieldElement {
+impl<'a> Sub for FieldElement<'a> {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -57,7 +57,7 @@ impl Sub for FieldElement {
     }
 }
 
-impl Mul for FieldElement {
+impl<'a> Mul for FieldElement<'a> {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self::Output {
@@ -66,9 +66,9 @@ impl Mul for FieldElement {
     }
 }
 
-impl AddAssign for FieldElement {
+impl<'a> AddAssign for FieldElement<'a> {
     fn add_assign(&mut self, other: Self) {
         assert_eq!(self.prime, other.prime);
-        self.value = (self.value.clone() + other.value).mod_floor(&self.prime);
+        self.value = (self.value.clone() + other.value).mod_floor(self.prime);
     }
 }
