@@ -3,7 +3,6 @@ use crate::field::FieldElement;
 use itertools::EitherOrBoth::{Both, Left, Right};
 use itertools::Itertools;
 use num_bigint::BigInt;
-use num_traits::{One, Zero};
 use std::ops::{Add, Mul};
 
 // Represents a univariate polynomial over a prime field.
@@ -28,15 +27,21 @@ impl<'a> Polynomial<'a> {
 
     // Evaluates the polynomial at a given field element, x.
     pub fn evaluate(&self, x: &FieldElement<'a>) -> FieldElement {
-        let mut y = FieldElement::new(BigInt::zero(), self.prime);
-        let mut exponent = FieldElement::new(BigInt::one(), self.prime);
-
-        for coeff in &self.coefficients {
-            y += coeff.clone() * exponent.clone();
-            exponent = exponent * x.clone();
-        }
-
-        y
+        // Accumulate sum of terms multiplied by coefficients.
+        self.coefficients
+            .iter()
+            .fold(
+                (
+                    FieldElement::zero(self.prime),
+                    FieldElement::one(self.prime),
+                ),
+                |(sum, term), coeff| {
+                    let sum = sum + coeff.clone() * term.clone();
+                    let term = term.clone() * x.clone();
+                    (sum, term)
+                },
+            )
+            .0
     }
 }
 
@@ -70,7 +75,7 @@ impl<'a> Mul<Polynomial<'a>> for Polynomial<'a> {
 
         // Initialize the coefficients to the sum of the lengths of the two polynomials.
         let mut new_coefficients = vec![
-            FieldElement::new(BigInt::zero(), self.prime);
+            FieldElement::zero(self.prime);
             self.coefficients.len() + other.coefficients.len() - 1
         ];
 

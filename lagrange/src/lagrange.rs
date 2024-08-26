@@ -1,12 +1,12 @@
 use crate::polynomial::Polynomial;
 use crate::FieldElement;
 use num_bigint::BigInt;
-use num_traits::{One, Zero};
+use num_traits::Zero;
 
 // Computes the ith Lagrange basis polynomial for a vector of size n.
 // The ith basis polynomial is the product of (x - k)/(i - k) for k != i over the prime field Fp.
 fn compute_basis_polynomial(i: usize, n: usize, p: &BigInt) -> Polynomial {
-    let mut basis = Polynomial::new(vec![FieldElement::new(BigInt::one(), p)], p);
+    let mut basis = Polynomial::new(vec![FieldElement::one(p)], p);
 
     for k in 0..n {
         // For every input element apart from i, accumulate multiplication.
@@ -22,7 +22,7 @@ fn compute_basis_polynomial(i: usize, n: usize, p: &BigInt) -> Polynomial {
                     // Constant term, -k.
                     FieldElement::new(BigInt::zero() - (*k).clone(), p),
                     // Linear term, 1.
-                    FieldElement::new(BigInt::one(), p),
+                    FieldElement::one(p),
                 ],
                 p,
             );
@@ -43,7 +43,7 @@ pub fn lagrange_interpolation<'a>(
     p: &'a BigInt,
 ) -> Polynomial<'a> {
     // Initialize the resulting Lagrange polynomial to zero.
-    let mut l = Polynomial::new(vec![FieldElement::new(BigInt::zero(), p)], p);
+    let mut l = Polynomial::new(vec![FieldElement::zero(p)], p);
 
     // Calculate the Lagrange interpolation polynomial.
     let n = evaluations.len();

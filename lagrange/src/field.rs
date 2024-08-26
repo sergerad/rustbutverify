@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
 use num_integer::Integer;
-use num_traits::One;
+use num_traits::{One, Zero};
 use std::ops::{Add, AddAssign, Deref, Mul, Sub};
 
 // Represents a field element in the prime field.
@@ -23,6 +23,14 @@ impl<'a> FieldElement<'a> {
             value: value.mod_floor(prime),
             prime,
         }
+    }
+
+    pub fn zero(prime: &'a BigInt) -> Self {
+        Self::new(BigInt::zero(), prime)
+    }
+
+    pub fn one(prime: &'a BigInt) -> Self {
+        Self::new(BigInt::one(), prime)
     }
 
     // Computes the multiplicative inverse of the field element.
