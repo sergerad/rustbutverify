@@ -54,6 +54,15 @@ impl<'a> Add for FieldElement<'a> {
     }
 }
 
+impl<'a> Add for &FieldElement<'a> {
+    type Output = FieldElement<'a>;
+
+    fn add(self, other: Self) -> Self::Output {
+        assert_eq!(self.prime, other.prime);
+        FieldElement::new(self.value.clone() + other.value.clone(), self.prime)
+    }
+}
+
 impl<'a> Sub for FieldElement<'a> {
     type Output = Self;
 

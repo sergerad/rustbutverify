@@ -52,7 +52,7 @@ impl<'a> Add<Polynomial<'a>> for Polynomial<'a> {
             .iter()
             .zip_longest(other.coefficients.iter())
             .map(|pair| match pair {
-                Both(a, b) => a.clone() + b.clone(),
+                Both(a, b) => a + b,
                 Left(a) => a.clone(),
                 Right(b) => b.clone(),
             })
