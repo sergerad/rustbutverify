@@ -1,5 +1,37 @@
 [workspace]
 
 resolver = "2"
-members = [ "builder","errors", "lagrange", "list", "matrix", "ops", "orphan", "polynomial", "starter"]
-
+members = [
+	"builder",
+	"errors",
+	"list",
+	"matrix",
+	"ops",
+	"orphan",
+	"starter",
+	# ZK-SNARK
+	"lagrange",
+	"polynomial",
+	# Exercism
+	"exercism/armstrong-numbers",
+	"exercism/beer-song",
+	"exercism/difference-of-squares",
+	"exercism/gigasecond",
+	"exercism/hello-world",
+	"exercism/nth-prime",
+	"exercism/reverse-string",
+	"exercism/prime-factors",
+	"exercism/sum-of-multiples",
+	"exercism/collatz-conjecture",
+	"exercism/bob",
+	"exercism/grains",
+	"exercism/leap",
+	"exercism/raindrops",
+	"exercism/series",
+	"exercism/diffie-hellman",
+	"exercism/matching-brackets",
+	"exercism/high-scores",
+	"exercism/eliuds-eggs",
+	"exercism/kindergarten-garden",
+	"exercism/proverb",
+]
