@@ -67,7 +67,7 @@ impl<'a> Add for &FieldElement<'a> {
 
     fn add(self, other: Self) -> Self::Output {
         assert_eq!(self.prime, other.prime);
-        FieldElement::new(self.value.clone() + other.value.clone(), self.prime)
+        FieldElement::new(&self.value + &other.value, self.prime)
     }
 }
 
@@ -80,6 +80,15 @@ impl<'a> Sub for FieldElement<'a> {
     }
 }
 
+impl<'a> Sub for &FieldElement<'a> {
+    type Output = FieldElement<'a>;
+
+    fn sub(self, other: Self) -> Self::Output {
+        assert_eq!(self.prime, other.prime);
+        FieldElement::new(&self.value - &other.value, self.prime)
+    }
+}
+
 impl<'a> Mul for FieldElement<'a> {
     type Output = Self;
 
@@ -89,9 +98,18 @@ impl<'a> Mul for FieldElement<'a> {
     }
 }
 
+impl<'a> Mul for &FieldElement<'a> {
+    type Output = FieldElement<'a>;
+
+    fn mul(self, other: Self) -> Self::Output {
+        assert_eq!(self.prime, other.prime);
+        FieldElement::new(&self.value * &other.value, self.prime)
+    }
+}
+
 impl<'a> AddAssign for FieldElement<'a> {
     fn add_assign(&mut self, other: Self) {
         assert_eq!(self.prime, other.prime);
-        self.value = (self.value.clone() + other.value).mod_floor(self.prime);
+        self.value = (&self.value + other.value).mod_floor(self.prime);
     }
 }

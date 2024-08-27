@@ -14,13 +14,13 @@ fn compute_basis_polynomial(i: usize, n: usize, p: &BigInt) -> Polynomial {
             // (i - k)^(-1)
             let i = FieldElement::new(BigInt::from(i), p);
             let k = FieldElement::new(BigInt::from(k), p);
-            let denominator = (i.clone() - k.clone()).inverse();
+            let denominator = (&i - &k).inverse();
 
             // Represent the linear factor (x - k) as a polynomial.
             let factor = Polynomial::new(
                 vec![
                     // Constant term, -k.
-                    FieldElement::new(BigInt::zero() - (*k).clone(), p),
+                    FieldElement::new(BigInt::zero() - &*k, p),
                     // Linear term, 1.
                     FieldElement::one(p),
                 ],

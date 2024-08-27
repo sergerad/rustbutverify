@@ -36,8 +36,8 @@ impl<'a> Polynomial<'a> {
                     FieldElement::one(self.prime),
                 ),
                 |(sum, term), coeff| {
-                    let sum = sum + coeff.clone() * term.clone();
-                    let term = term.clone() * x.clone();
+                    let sum = sum + coeff * &term;
+                    let term = &term * x;
                     (sum, term)
                 },
             )
@@ -82,7 +82,7 @@ impl<'a> Mul<Polynomial<'a>> for Polynomial<'a> {
         // Multiply the coefficients of the two polynomials.
         for (i, coeff_self) in self.coefficients.iter().enumerate() {
             for (j, coeff_other) in other.coefficients.iter().enumerate() {
-                new_coefficients[i + j] += coeff_self.clone() * coeff_other.clone();
+                new_coefficients[i + j] += coeff_self * coeff_other;
             }
         }
 
@@ -97,7 +97,7 @@ impl<'a> Mul<&FieldElement<'a>> for Polynomial<'a> {
         let new_coefficients = self
             .coefficients
             .iter()
-            .map(|coeff| coeff.clone() * element.clone())
+            .map(|coeff| coeff * element)
             .collect();
         Polynomial::new(new_coefficients, self.prime)
     }
