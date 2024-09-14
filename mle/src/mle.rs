@@ -11,18 +11,17 @@ pub fn multilinear_extension<const P: u128>(
         .into_iter()
         .map(|(tuple, eval)| {
             // Compute the product of multilinear Lagrange basis polynomials.
-            let prod = tuple
-                .iter()
-                .by_vals()
-                .rev()
+            let bits = tuple.iter().by_vals().rev();
+            let product = bits
                 .zip(point.iter())
-                .map(|(bit, r)| {
-                    let one_or_zero = FieldElement::<P>::from(bit);
-                    *r * one_or_zero + (one - *r) * (one - one_or_zero)
+                .map(|(w, &x)| {
+                    // x_i * w_i + (1 - x_i)(1 - w_i)
+                    let w = FieldElement::<P>::from(w);
+                    x * w + (one - x) * (one - w)
                 })
                 .product();
             // Weight the product by the evaluation of boolean tuple from the multivariate function.
-            eval * prod
+            eval * product
         })
         .sum();
     sum
