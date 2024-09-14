@@ -33,16 +33,16 @@ fn main() {
         sum
     });
     println!(
-        "Computed f over the hypercube {{0,1}}^{v}:\n{:?}",
+        "Computed f(w) over the hypercube {{0,1}}^{v}:\n{:?}",
         multivariate
     );
 
     // Evaluate the MLE at every point in Fp.
-    println!("Computed MLE for every point in Fp:");
+    println!("Computed MLE(x) for every x in Fp:");
     for i in 0..P {
         for j in 0..P {
-            let point = vec![FieldElement::new(i), FieldElement::new(j)];
-            let mle = multilinear_extension(multivariate.clone(), point);
+            let x = vec![FieldElement::new(i), FieldElement::new(j)];
+            let mle = multilinear_extension(multivariate.clone(), x);
             print!("{:?} ", mle);
         }
         println!();
