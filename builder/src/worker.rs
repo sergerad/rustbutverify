@@ -5,7 +5,6 @@ pub struct Worker<W> {
     pub keep_alive: bool,
 }
 
-// Workload trait is used as a bound in our builder
 pub trait Workload {
     fn work(&self);
 }

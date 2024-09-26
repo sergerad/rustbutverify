@@ -1,6 +1,6 @@
 use crate::worker::*;
 
-// A workload that prints a string
+/// A workload that prints a string
 #[derive(Clone, Debug)]
 pub struct HelloWorkload<'a>(pub &'a str);
 
