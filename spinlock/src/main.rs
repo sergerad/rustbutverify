@@ -26,14 +26,6 @@ impl<T> SpinLock<T> {
         }
         Guard { lock: self }
     }
-
-    /// # Safety
-    ///
-    /// The &mut T from lock() must be gone!
-    /// (And no cheating by keeping reference to fields of that T around!)
-    pub unsafe fn unlock(&self) {
-        self.locked.store(false, Release);
-    }
 }
 
 pub struct Guard<'a, T> {
@@ -56,9 +48,6 @@ impl<T> DerefMut for Guard<'_, T> {
         unsafe { &mut *self.lock.cell.get() }
     }
 }
-
-unsafe impl<T> Send for Guard<'_, T> where T: Send {}
-unsafe impl<T> Sync for Guard<'_, T> where T: Sync {}
 
 impl<T> Drop for Guard<'_, T> {
     fn drop(&mut self) {
