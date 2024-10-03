@@ -12,15 +12,8 @@ impl std::fmt::Display for ExampleError {
 
 #[derive(Debug, ThisError)]
 enum EnumError {
+    #[error("EnumErrror::Example occurred")]
     Example(#[from] ExampleError),
-}
-
-impl std::fmt::Display for EnumError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            EnumError::Example(_) => write!(f, "EnumErrror::Example occurred"),
-        }
-    }
 }
 
 fn report(error: &(dyn Error + 'static)) {

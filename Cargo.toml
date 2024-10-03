@@ -33,5 +33,5 @@ members = [
 	"exercism/high-scores",
 	"exercism/eliuds-eggs",
 	"exercism/kindergarten-garden",
-	"exercism/proverb", "mle", "spinlock", "channel", "sumcheck",
+	"exercism/proverb", "mle", "spinlock", "channel", "sumcheck", "associated",
 ]
