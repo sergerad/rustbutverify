@@ -1,11 +1,10 @@
-use ark_poly::multivariate::Term;
 use thiserror::Error as ThisError;
 
 use ark_bls12_381::Fr as FieldElement;
 
 use crate::polynomial::{
-    derive_univariate, sum_multivariate, Error as PolynomialError, MVPolynomial, Multivariate,
-    Polynomial, SparseTerm, Univariate,
+    derive_univariate, index_max_degrees, sum_multivariate, Error as PolynomialError, MVPolynomial,
+    Multivariate, Polynomial, Univariate,
 };
 
 pub use crate::round::Round;
@@ -27,12 +26,15 @@ pub enum Error {
 /// Repeats rounds for each variable in f until the following equation can
 /// be verified: g_v(r_v) = f(r_1,...,r_v).
 ///
-/// Intended to be used as an iterator that produces a [Round] for each iteration
+/// intended to be used as an iterator that produces a [round] for each iteration
 /// of the sum-check algorithm.
 #[derive(Debug)]
 pub struct SumCheck {
     /// The multivariate polynomial f that represents the arithmetic circuit being proven.
     f: Multivariate,
+
+    /// The maximum degree of each variable in f.
+    degrees: Vec<usize>,
 
     /// The sum of f over the Boolean hypercube.
     sum: FieldElement,
@@ -55,10 +57,13 @@ impl SumCheck {
     pub fn new(f: Multivariate) -> Result<Self, Error> {
         // Calculate sum of f over Boolean hypercube.
         let sum = sum_multivariate(&f)?;
+        // Calculate maximum degree of each variable in f.
+        let degrees = index_max_degrees(&f);
         // Return initialized instance.
         Ok(Self {
             f,
             sum,
+            degrees,
             g: Vec::new(),
             r: Vec::new(),
             round: 0,
@@ -74,10 +79,7 @@ impl SumCheck {
         let g_1 = derive_univariate(&self.f, &self.r);
 
         // Verify that g_1 is of correct degree.
-        let term = &self.f.terms[0].1;
-        if !Self::verify_degree(&g_1, term) {
-            return Err(Error::Degree(self.round, g_1.degree(), term.degree()));
-        }
+        self.verify_degree(&g_1, self.round - 1)?;
         // Verify that g_1 evaluates to the expected result.
         let sum = g_1.evaluate(&0u32.into()) + g_1.evaluate(&1u32.into());
         if sum != self.sum {
@@ -101,11 +103,8 @@ impl SumCheck {
         // Derive univariate polynomial g_i from f.
         let g_i = derive_univariate(&self.f, &self.r);
 
-        // Verify that g_1 is of correct degree.
-        let term = &self.f.terms[self.round - 1].1;
-        if !Self::verify_degree(&g_i, term) {
-            return Err(Error::Degree(self.round, g_i.degree(), term.degree()));
-        }
+        // Verify that g_i is of correct degree.
+        self.verify_degree(&g_i, self.round - 1)?;
         // Check that g_i(0) + g_i(1) = g_{i-1}(r_{i-1}).
         let sum_i = g_i.evaluate(&0u32.into()) + g_i.evaluate(&1u32.into());
         let sum_r = self.g[self.round - 2].evaluate(&self.r[self.round - 2]);
@@ -143,8 +142,11 @@ impl SumCheck {
     }
 
     /// Checks that the total degree of the univariate polynomial is equal to the degree of the term.
-    fn verify_degree(u: &Univariate, term: &SparseTerm) -> bool {
-        u.degree() <= term.degree()
+    fn verify_degree(&self, u: &Univariate, var: usize) -> Result<(), Error> {
+        if u.degree() > self.degrees[var] {
+            return Err(Error::Degree(self.round, u.degree(), self.degrees[var]));
+        }
+        Ok(())
     }
 
     /// Creates a random field element and adds it to the list of random values.

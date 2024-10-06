@@ -118,6 +118,21 @@ pub fn evaluate_multivariate_term(
     (eval, univariate_term)
 }
 
+/// Creates a list of the maximum degree of each variable in the polynomial.
+/// For example, for f = a + 2b^2 + 3ac^3, the maximum degrees are [1,2,3].
+pub fn index_max_degrees(f: &Multivariate) -> Vec<usize> {
+    let num_vars = f.num_vars();
+    let mut index = vec![0; num_vars];
+    f.terms().iter().for_each(|(_coeff, term)| {
+        term.iter().for_each(|(var, pow)| {
+            if *pow > index[*var] {
+                index[*var] = *pow;
+            }
+        });
+    });
+    index
+}
+
 /// Creates a {0,1}^v tuple that corresponds to an integer-based index.
 /// For example, 6 = [1,1,0].
 pub fn index_to_boolean_tuple(index: usize, num_vars: usize) -> Vec<FieldElement> {
@@ -189,6 +204,20 @@ mod test {
         );
         let sum = sum_multivariate(&f).unwrap();
         assert_eq!(sum, 18u32.into());
+    }
+
+    #[test]
+    fn multivariate_degrees() {
+        let f: Multivariate = SparsePolynomial::from_coefficients_vec(
+            3,
+            vec![
+                (1u32.into(), SparseTerm::new(vec![(0, 1)])), // a
+                (2u32.into(), SparseTerm::new(vec![(1, 2)])), // 2b^2
+                (3u32.into(), SparseTerm::new(vec![(0, 1), (2, 3)])), // 3ac^3
+            ],
+        );
+        let degrees = index_max_degrees(&f);
+        assert_eq!(degrees, vec![1, 2, 3]);
     }
 
     #[test]
