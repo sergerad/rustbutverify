@@ -34,6 +34,10 @@ fn main() {
     report(&ExampleError);
     report(&EnumError::Example(ExampleError));
 
+    // From str and Box<dyn Error> into &(dyn Error + 'static).
+    let b = Box::<dyn Error>::from("from str");
+    report(b.as_ref());
+
     let m = map_me().map_err(EnumError::Example);
     if let Err(ref e) = m {
         report(e);
