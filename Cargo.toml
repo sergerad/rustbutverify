@@ -38,5 +38,5 @@ members = [
 	"exercism/high-scores",
 	"exercism/eliuds-eggs",
 	"exercism/kindergarten-garden",
-	"exercism/proverb", "lifetimes",
+	"exercism/proverb", "lifetimes", "constraint-graph",
 ]
