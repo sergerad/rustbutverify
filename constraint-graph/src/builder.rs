@@ -100,7 +100,8 @@ impl Builder {
                     Operator::Equality => {
                         let left = evaluations.get(left.as_ref()).unwrap();
                         let right = evaluations.get(right.as_ref()).unwrap();
-                        evaluations.insert(node.as_ref().clone(), left - right);
+                        evaluations
+                            .insert(node.as_ref().clone(), left.checked_sub(*right).unwrap_or(1));
                     }
                 },
                 Node::Hint(other) => {

@@ -4,8 +4,10 @@ pub mod graph;
 #[cfg(test)]
 mod test {
     use crate::builder::Builder;
-    #[test]
-    fn add_mul() {
+    use parameterized::parameterized;
+
+    #[parameterized(x_val = {1, 2, 3}, y_val = {7, 11, 17})]
+    fn add_mul(x_val: u32, y_val: u32) {
         // f(x) = x^2 + x + 5
         let mut builder = Builder::default();
         let x = builder.init();
@@ -14,12 +16,13 @@ mod test {
         let x_squared_plus_5 = builder.add(&x_squared, &five);
         let y = builder.add(&x_squared_plus_5, &x);
 
-        let mut graph = builder.fill(&[2]);
-        assert!(graph.check_constraints(y, 11));
+        // Evaluate and check constraints
+        let mut graph = builder.fill(&[x_val]);
+        assert!(graph.check_constraints(y, y_val));
     }
 
-    #[test]
-    fn add_mul_equality() {
+    #[parameterized(x_val = {1, 2, 3})]
+    fn add_mul_equality(x_val: u32) {
         // f(x) = x^2 + x + 5
         let mut builder = Builder::default();
         let x = builder.init();
@@ -30,12 +33,13 @@ mod test {
         let yy = builder.add(&x_squared_plus_5, &x);
         let y_equal_yy = builder.assert_equal(&y, &yy);
 
-        let mut graph = builder.fill(&[2]);
+        // Evaluate and check constraints
+        let mut graph = builder.fill(&[x_val]);
         assert!(graph.check_constraints(y_equal_yy, 0));
     }
 
-    #[test]
-    fn mul_hint() {
+    #[parameterized(a_val = {7, 17, 63}, c_val = {1, 2, 8})]
+    fn mul_hint(a_val: u32, c_val: u32) {
         // function f(a):
         //     b = a + 1
         //     c = b / 8
@@ -46,12 +50,13 @@ mod test {
         let b = builder.add(&a, &one);
         let c = builder.hint(&b, |b_value| b_value / 8);
 
-        let mut graph = builder.fill(&[7]);
-        assert!(graph.check_constraints(c, 1));
+        // Evaluate and check constraints
+        let mut graph = builder.fill(&[a_val]);
+        assert!(graph.check_constraints(c, c_val));
     }
 
-    #[test]
-    fn sqrt_hint() {
+    #[parameterized(x_val = {2, 9, 57})]
+    fn sqrt_hint(x_val: u32) {
         // f(x) = sqrt(x+7)
         let mut builder = Builder::default();
         let x = builder.init();
@@ -64,7 +69,8 @@ mod test {
         let computed_sq = builder.mul(&sqrt_x_plus_7, &sqrt_x_plus_7);
         let eq = builder.assert_equal(&computed_sq, &x_plus_seven);
 
-        let mut graph = builder.fill(&[2]);
+        // Evaluate and check constraints
+        let mut graph = builder.fill(&[x_val]);
         assert!(graph.check_constraints(eq, 0));
     }
 }
