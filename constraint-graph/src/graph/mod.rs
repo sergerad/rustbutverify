@@ -23,6 +23,7 @@ pub enum Node {
     Hint(Rc<Node>),
 }
 
+/// Builds a [Graph] of nodes representing a mathematical function.
 #[derive(Debug)]
 pub struct Builder {
     nodes: Vec<Rc<Node>>,
@@ -30,6 +31,7 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Instantiates a new [Builder].
     pub fn new() -> Self {
         Self {
             nodes: Vec::new(),
@@ -37,18 +39,21 @@ impl Builder {
         }
     }
 
+    /// Initializes a new variable node in the graph.
     pub fn init(&mut self) -> Node {
         let node = Node::Variable(self.nodes.len());
         self.nodes.push(node.clone().into());
         node
     }
 
+    /// Initalizes a new constant node in the graph.
     pub fn constant(&mut self, value: u32) -> Node {
         let node = Node::Constant(value);
         self.nodes.push(node.clone().into());
         node
     }
 
+    /// Initializes a new addition operation node in the graph.
     pub fn add(&mut self, left: &Node, right: &Node) -> Node {
         let node = Node::Operation {
             operator: Operator::Add,
@@ -59,6 +64,7 @@ impl Builder {
         node
     }
 
+    /// Initializes a new multiplication operation node in the graph.
     pub fn mul(&mut self, left: &Node, right: &Node) -> Node {
         let node = Node::Operation {
             operator: Operator::Multiply,
@@ -69,6 +75,7 @@ impl Builder {
         node
     }
 
+    /// Initializes a new equality operation node in the graph.
     pub fn assert_equal(&mut self, left: &Node, right: &Node) -> Node {
         let node = Node::Operation {
             operator: Operator::Equality,
@@ -79,6 +86,8 @@ impl Builder {
         node
     }
 
+    /// Initializes a new hint node in the graph.
+    /// The evaluation of the node will be computed using the hint function.
     pub fn hint(&mut self, node: &Node, hint: Hint) -> Node {
         let node = Node::Hint(node.clone().into());
         self.hints.insert(node.clone(), hint);
@@ -86,34 +95,21 @@ impl Builder {
         node
     }
 
+    /// Fills the graph with input values and evaluates all nodes.
+    /// The returned [Graph] can be used to check constraints of the computation.
     pub fn fill(self, inputs: &[u32]) -> Graph {
-        Graph {
-            nodes: self.nodes,
-            inputs: inputs.to_vec(),
-            hints: self.hints,
-            evaluations: HashMap::new(),
-        }
+        self.evaluate(inputs)
     }
-}
 
-#[derive(Debug)]
-pub struct Graph {
-    nodes: Vec<Rc<Node>>,
-    inputs: Vec<u32>,
-    hints: HashMap<Node, Hint>,
-    evaluations: HashMap<Node, u32>,
-}
-
-impl Graph {
-    pub fn check_constraints(&mut self, result: Node, expected_value: u32) -> bool {
-        for node in self.nodes.iter() {
+    fn evaluate(self, inputs: &[u32]) -> Graph {
+        let mut evaluations = HashMap::new();
+        for node in self.nodes.into_iter() {
             match node.as_ref() {
                 Node::Variable(id) => {
-                    self.evaluations
-                        .insert(node.as_ref().clone(), self.inputs[*id]);
+                    evaluations.insert(node.as_ref().clone(), inputs[*id]);
                 }
                 Node::Constant(value) => {
-                    self.evaluations.insert(node.as_ref().clone(), *value);
+                    evaluations.insert(node.as_ref().clone(), *value);
                 }
                 Node::Operation {
                     operator,
@@ -121,29 +117,41 @@ impl Graph {
                     right,
                 } => match operator {
                     Operator::Add => {
-                        let left = self.evaluations.get(left.as_ref()).unwrap();
-                        let right = self.evaluations.get(right.as_ref()).unwrap();
-                        self.evaluations.insert(node.as_ref().clone(), left + right);
+                        let left = evaluations.get(left.as_ref()).unwrap();
+                        let right = evaluations.get(right.as_ref()).unwrap();
+                        evaluations.insert(node.as_ref().clone(), left + right);
                     }
                     Operator::Multiply => {
-                        let left = self.evaluations.get(left.as_ref()).unwrap();
-                        let right = self.evaluations.get(right.as_ref()).unwrap();
-                        self.evaluations.insert(node.as_ref().clone(), left * right);
+                        let left = evaluations.get(left.as_ref()).unwrap();
+                        let right = evaluations.get(right.as_ref()).unwrap();
+                        evaluations.insert(node.as_ref().clone(), left * right);
                     }
                     Operator::Equality => {
-                        let left = self.evaluations.get(left.as_ref()).unwrap();
-                        let right = self.evaluations.get(right.as_ref()).unwrap();
-                        self.evaluations.insert(node.as_ref().clone(), left - right);
+                        let left = evaluations.get(left.as_ref()).unwrap();
+                        let right = evaluations.get(right.as_ref()).unwrap();
+                        evaluations.insert(node.as_ref().clone(), left - right);
                     }
                 },
                 Node::Hint(other) => {
                     let hint = self.hints.get(node.as_ref()).unwrap();
-                    let other_value = self.evaluations.get(other.as_ref()).unwrap();
+                    let other_value = evaluations.get(other.as_ref()).unwrap();
                     let hint_value = hint(*other_value);
-                    self.evaluations.insert(node.as_ref().clone(), hint_value);
+                    evaluations.insert(node.as_ref().clone(), hint_value);
                 }
             }
         }
+        Graph { evaluations }
+    }
+}
+
+/// A graph of nodes representing a mathematical function.
+#[derive(Debug)]
+pub struct Graph {
+    evaluations: HashMap<Node, u32>,
+}
+
+impl Graph {
+    pub fn check_constraints(&mut self, result: Node, expected_value: u32) -> bool {
         let result = self.evaluations.get(&result).unwrap();
         *result == expected_value
     }
