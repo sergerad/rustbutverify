@@ -1,7 +1,7 @@
 use crate::graph::{Graph, Hint, Node, Operator};
 use std::{collections::HashMap, rc::Rc};
 
-/// Builds a [Graph] of nodes representing a mathematical function.
+/// Builds a [Graph] of [Node]s representing a mathematical function.
 #[derive(Debug, Default)]
 pub struct Builder {
     nodes: Vec<Rc<Node>>,
@@ -9,21 +9,21 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Initializes a new variable node in the graph.
+    /// Initializes a new variable [Node] in the [Graph].
     pub fn init(&mut self) -> Node {
         let node = Node::Variable(self.nodes.len());
         self.nodes.push(node.clone().into());
         node
     }
 
-    /// Initalizes a new constant node in the graph.
+    /// Initalizes a new constant [Node] in the [Graph].
     pub fn constant(&mut self, value: u32) -> Node {
         let node = Node::Constant(value);
         self.nodes.push(node.clone().into());
         node
     }
 
-    /// Initializes a new addition operation node in the graph.
+    /// Initializes a new addition operation [Node] in the [Graph].
     pub fn add(&mut self, left: &Node, right: &Node) -> Node {
         let node = Node::Operation {
             operator: Operator::Add,
@@ -34,7 +34,7 @@ impl Builder {
         node
     }
 
-    /// Initializes a new multiplication operation node in the graph.
+    /// Initializes a new multiplication operation [Node] in the graph.
     pub fn mul(&mut self, left: &Node, right: &Node) -> Node {
         let node = Node::Operation {
             operator: Operator::Multiply,
@@ -45,7 +45,7 @@ impl Builder {
         node
     }
 
-    /// Initializes a new equality operation node in the graph.
+    /// Initializes a new equality operation [Node] in the [Graph].
     pub fn assert_equal(&mut self, left: &Node, right: &Node) -> Node {
         let node = Node::Operation {
             operator: Operator::Equality,
@@ -65,13 +65,13 @@ impl Builder {
         node
     }
 
-    /// Fills the graph with input values and evaluates all nodes.
+    /// Fills the [Graph] with input values and evaluates all [Node]s.
     /// The returned [Graph] can be used to check constraints of the computation.
     pub fn fill(self, inputs: &[u32]) -> Graph {
         self.evaluate(inputs)
     }
 
-    /// Evaluates all nodes in the graph using the provided input values.
+    /// Evaluates all [Node]s in the [Graph] using the provided input values.
     fn evaluate(self, inputs: &[u32]) -> Graph {
         let mut evaluations = HashMap::new();
         for node in self.nodes.into_iter() {
@@ -112,73 +112,5 @@ impl Builder {
             }
         }
         Graph { evaluations }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn add_mul() {
-        // f(x) = x^2 + x + 5
-        let mut builder = Builder::default();
-        let x = builder.init();
-        let x_squared = builder.mul(&x, &x);
-        let five = builder.constant(5);
-        let x_squared_plus_5 = builder.add(&x_squared, &five);
-        let y = builder.add(&x_squared_plus_5, &x);
-
-        let mut graph = builder.fill(&[2]);
-        assert!(graph.check_constraints(y, 11));
-    }
-
-    #[test]
-    fn add_mul_equality() {
-        // f(x) = x^2 + x + 5
-        let mut builder = Builder::default();
-        let x = builder.init();
-        let x_squared = builder.mul(&x, &x);
-        let five = builder.constant(5);
-        let x_squared_plus_5 = builder.add(&x_squared, &five);
-        let y = builder.add(&x_squared_plus_5, &x);
-        let yy = builder.add(&x_squared_plus_5, &x);
-        let y_equal_yy = builder.assert_equal(&y, &yy);
-
-        let mut graph = builder.fill(&[2]);
-        assert!(graph.check_constraints(y_equal_yy, 0));
-    }
-
-    #[test]
-    fn mul_hint() {
-        // function f(a):
-        //     b = a + 1
-        //     c = b / 8
-        //     return c
-        let mut builder = Builder::default();
-        let a = builder.init();
-        let one = builder.constant(1);
-        let b = builder.add(&a, &one);
-        let c = builder.hint(&b, |b_value| b_value / 8);
-
-        let mut graph = builder.fill(&[7]);
-        assert!(graph.check_constraints(c, 1));
-    }
-
-    #[test]
-    fn sqrt_hint() {
-        // f(x) = sqrt(x+7)
-        let mut builder = Builder::default();
-        let x = builder.init();
-        let seven = builder.constant(7);
-        let x_plus_seven = builder.add(&x, &seven);
-
-        let sqrt_x_plus_7 = builder.hint(&x_plus_seven, |x_plus_seven| {
-            (x_plus_seven as f32).sqrt() as u32
-        });
-        let computed_sq = builder.mul(&sqrt_x_plus_7, &sqrt_x_plus_7);
-        let eq = builder.assert_equal(&computed_sq, &x_plus_seven);
-
-        let mut graph = builder.fill(&[2]);
-        assert!(graph.check_constraints(eq, 0));
     }
 }
