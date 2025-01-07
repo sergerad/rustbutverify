@@ -1,6 +1,9 @@
 pub mod builder;
 pub mod graph;
 
+pub use builder::Builder;
+pub use graph::Graph;
+
 #[cfg(test)]
 mod test {
     use crate::builder::Builder;

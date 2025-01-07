@@ -38,7 +38,7 @@ pub enum Operator {
     Equality,
 }
 
-/// A graph of nodes representing a mathematical function.
+/// A graph of [Node]s representing a mathematical function.
 /// Contains computed evaluations of [Node]s in the graph.
 /// Can be used to check arithmetic constraints on the graph.
 #[derive(Debug)]
