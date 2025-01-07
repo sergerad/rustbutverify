@@ -1,8 +1,9 @@
 mod graph;
 
+// TODO: Parse polynomial string from command line args.
 fn main() {
+    // f(x) = x^2 + x + 5
     let mut builder = graph::Builder::new();
-    // Example 1: f(x) = x^2 + x + 5
     let x = builder.init();
     let x_squared = builder.mul(&x, &x);
     let five = builder.constant(5);
