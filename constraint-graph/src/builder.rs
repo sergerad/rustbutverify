@@ -1,44 +1,14 @@
+use crate::graph::{Graph, Hint, Node, Operator};
 use std::{collections::HashMap, rc::Rc};
 
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub enum Operator {
-    Add,
-    Multiply,
-    Equality,
-}
-
-type Id = usize;
-
-type Hint = fn(u32) -> u32;
-
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub enum Node {
-    Variable(Id),
-    Constant(u32),
-    Operation {
-        operator: Operator,
-        left: Rc<Node>,
-        right: Rc<Node>,
-    },
-    Hint(Rc<Node>),
-}
-
 /// Builds a [Graph] of nodes representing a mathematical function.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Builder {
     nodes: Vec<Rc<Node>>,
     hints: HashMap<Node, Hint>,
 }
 
 impl Builder {
-    /// Instantiates a new [Builder].
-    pub fn new() -> Self {
-        Self {
-            nodes: Vec::new(),
-            hints: HashMap::new(),
-        }
-    }
-
     /// Initializes a new variable node in the graph.
     pub fn init(&mut self) -> Node {
         let node = Node::Variable(self.nodes.len());
@@ -101,6 +71,7 @@ impl Builder {
         self.evaluate(inputs)
     }
 
+    /// Evaluates all nodes in the graph using the provided input values.
     fn evaluate(self, inputs: &[u32]) -> Graph {
         let mut evaluations = HashMap::new();
         for node in self.nodes.into_iter() {
@@ -144,26 +115,13 @@ impl Builder {
     }
 }
 
-/// A graph of nodes representing a mathematical function.
-#[derive(Debug)]
-pub struct Graph {
-    evaluations: HashMap<Node, u32>,
-}
-
-impl Graph {
-    pub fn check_constraints(&mut self, result: Node, expected_value: u32) -> bool {
-        let result = self.evaluations.get(&result).unwrap();
-        *result == expected_value
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     #[test]
     fn add_mul() {
         // f(x) = x^2 + x + 5
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
         let x = builder.init();
         let x_squared = builder.mul(&x, &x);
         let five = builder.constant(5);
@@ -177,7 +135,7 @@ mod test {
     #[test]
     fn add_mul_equality() {
         // f(x) = x^2 + x + 5
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
         let x = builder.init();
         let x_squared = builder.mul(&x, &x);
         let five = builder.constant(5);
@@ -196,7 +154,7 @@ mod test {
         //     b = a + 1
         //     c = b / 8
         //     return c
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
         let a = builder.init();
         let one = builder.constant(1);
         let b = builder.add(&a, &one);
@@ -209,7 +167,7 @@ mod test {
     #[test]
     fn sqrt_hint() {
         // f(x) = sqrt(x+7)
-        let mut builder = Builder::new();
+        let mut builder = Builder::default();
         let x = builder.init();
         let seven = builder.constant(7);
         let x_plus_seven = builder.add(&x, &seven);
