@@ -48,8 +48,8 @@ pub struct Graph {
 
 impl Graph {
     /// Checks whether the result of a [Node] matches the expected value.
-    pub fn check_constraints(&mut self, result: Node, expected_value: u32) -> bool {
-        let result = self.evaluations.get(&result).unwrap();
+    pub fn check_constraints(&mut self, result: &Node, expected_value: u32) -> bool {
+        let result = self.evaluations.get(result).unwrap();
         *result == expected_value
     }
 }

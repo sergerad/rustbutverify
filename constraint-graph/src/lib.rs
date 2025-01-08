@@ -21,7 +21,7 @@ mod test {
 
         // Evaluate and check constraints
         let mut graph = builder.fill(&[x_val]);
-        assert!(graph.check_constraints(y, y_val));
+        assert!(graph.check_constraints(&y, y_val));
     }
 
     #[parameterized(x_val = {1, 2, 3})]
@@ -38,7 +38,7 @@ mod test {
 
         // Evaluate and check constraints
         let mut graph = builder.fill(&[x_val]);
-        assert!(graph.check_constraints(y_equal_yy, 0));
+        assert!(graph.check_constraints(&y_equal_yy, 0));
     }
 
     #[parameterized(a_val = {7, 17, 63}, c_val = {1, 2, 8})]
@@ -55,7 +55,7 @@ mod test {
 
         // Evaluate and check constraints
         let mut graph = builder.fill(&[a_val]);
-        assert!(graph.check_constraints(c, c_val));
+        assert!(graph.check_constraints(&c, c_val));
     }
 
     #[parameterized(x_val = {2, 9, 57})]
@@ -74,6 +74,6 @@ mod test {
 
         // Evaluate and check constraints
         let mut graph = builder.fill(&[x_val]);
-        assert!(graph.check_constraints(eq, 0));
+        assert!(graph.check_constraints(&eq, 0));
     }
 }
