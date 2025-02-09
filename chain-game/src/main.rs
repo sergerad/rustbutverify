@@ -2,6 +2,16 @@ use std::{thread::sleep, time::Duration};
 
 use rand::Rng;
 
+#[derive(Debug, thiserror::Error)]
+pub enum GameError {
+    // ..
+    #[error("Frame id does not match channel id")]
+    FrameIdMismatch,
+    // ..
+    #[error("Player count {0} is unexpected")]
+    PlayerCountError(usize),
+}
+
 trait Ticker: std::fmt::Debug {
     fn tick(&mut self);
     fn is_done(&self) -> bool;
