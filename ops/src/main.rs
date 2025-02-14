@@ -1,3 +1,7 @@
+fn op_one(s: impl ToString, f: impl FnOnce(String) -> String) -> String {
+    f(s.to_string())
+}
+
 fn main() {
     // fnMut: mutate captured vec
     let mut mutate_me: Vec<String> = vec!["c".into(), "d".into()];
@@ -20,4 +24,6 @@ fn main() {
     let fn_once = || move_me;
     let moved_me = None.unwrap_or_else(fn_once);
     println!("moved_x: {:?}", moved_me);
+
+    println!("one {}", op_one("two", fn_))
 }

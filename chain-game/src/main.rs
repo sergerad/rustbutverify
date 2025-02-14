@@ -1,4 +1,4 @@
-use std::{thread::sleep, time::Duration};
+use std::{collections::VecDeque, thread::sleep, time::Duration};
 
 use rand::Rng;
 
@@ -19,13 +19,13 @@ trait Ticker: std::fmt::Debug {
 
 #[derive(Debug, Default)]
 struct Chain<T: Ticker> {
-    games: Vec<T>,
+    games: VecDeque<T>,
 }
 
 impl<T: Ticker> Chain<T> {
     #[tracing::instrument(ret)]
     fn add_game(&mut self, game: T) {
-        self.games.push(game);
+        self.games.push_back(game);
     }
 }
 
