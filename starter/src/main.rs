@@ -10,8 +10,8 @@ mod utils;
 fn main() -> Result<()> {
     // Print dirs
     for entry in read_dir("./")?.filter_map(|e| e.ok()) {
-        let entry: String = NewType(&entry).try_into()?;
-        println!("{entry:?}");
+        let entry = NewType(&entry);
+        println!("{:?}", *entry);
     }
 
     println!("{}", Error::Generic("hellowirl".to_string()));
