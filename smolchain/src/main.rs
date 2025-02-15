@@ -32,12 +32,41 @@
 
 use std::{
     collections::VecDeque,
+    hash::Hash,
     sync::mpsc::{Receiver, Sender},
 };
 use tracing::{info, warn};
 
-#[derive(Debug, serde::Serialize, Default)]
-struct Transaction {}
+#[derive(Debug, serde::Serialize, Hash)]
+struct Transaction {
+    nonce: u32,
+}
+
+impl Transaction {
+    pub fn random() -> Self {
+        Self {
+            nonce: rand::random(),
+        }
+    }
+}
+
+pub struct Blake3(blake3::Hasher);
+
+impl std::hash::Hasher for Blake3 {
+    fn write(&mut self, input: &[u8]) {
+        self.0.update(input);
+    }
+    fn finish(&self) -> u64 {
+        self.0.finalize();
+        0
+    }
+}
+
+impl Blake3 {
+    pub fn output(&self) -> blake3::Hash {
+        self.0.finalize()
+    }
+}
 
 impl From<&Transaction> for Vec<u8> {
     fn from(tx: &Transaction) -> Self {
@@ -54,16 +83,17 @@ struct Block {
 impl Block {
     pub fn new(txs: impl Iterator<Item = Transaction>) -> Self {
         let (txs, hasher) = txs.fold(
-            (Vec::new(), blake3::Hasher::new()),
+            (Vec::new(), Blake3(blake3::Hasher::new())),
             |(mut txs, mut hasher), tx| {
-                hasher.update(Vec::from(&tx).as_slice());
+                tx.hash(&mut hasher);
+                //hasher.update(tx.into);
                 txs.push(tx);
                 (txs, hasher)
             },
         );
         Self {
             txs,
-            hash: hasher.finalize(),
+            hash: hasher.output(),
         }
     }
 }
@@ -81,7 +111,7 @@ impl Rpc {
     pub fn run(mut self) {
         let delay = std::time::Duration::from_secs(1);
         loop {
-            let msg = Message::NewTx(Transaction::default());
+            let msg = Message::NewTx(Transaction::random());
             self.send(msg);
             std::thread::sleep(delay);
         }
