@@ -1,0 +1,200 @@
+//! A small, simple blockchain.
+//!
+//! Functional requirements
+//! - Receives transactions
+//! - Transaction pool
+//! - Blocks are mined from transactions
+//!
+//! Non-functional requirements
+//! - Not important...
+//!
+//! Key entities
+//! - Transactions
+//! - Blocks
+//! - Signatures
+//! - Hashes
+//! - Sequencer
+//! - Mempool
+//! - RPC
+//!
+//! Runtime components
+//! - Sequencer
+//! - RPC (server)
+//!
+//! State
+//! - Transaction pool (rpc writes, sequencer reads)
+//! - Blocks (sequencer writes, rpc reads)
+//!
+//! Practical considerations
+//! - RPC server in practice will use a threadpool
+//! - Ideally RPC requests don't block on mempool directly (backpressure)
+//! - ...
+
+use std::{collections::VecDeque, hash::Hash};
+use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tracing::{info, warn};
+
+#[derive(Debug, serde::Serialize, Hash)]
+struct Transaction {
+    nonce: u32,
+}
+
+impl Transaction {
+    pub fn random() -> Self {
+        Self {
+            nonce: rand::random(),
+        }
+    }
+}
+
+pub struct Blake3(blake3::Hasher);
+
+impl std::hash::Hasher for Blake3 {
+    fn write(&mut self, input: &[u8]) {
+        self.0.update(input);
+    }
+    fn finish(&self) -> u64 {
+        self.0.finalize();
+        0
+    }
+}
+
+impl Blake3 {
+    pub fn output(&self) -> blake3::Hash {
+        self.0.finalize()
+    }
+}
+
+impl From<&Transaction> for Vec<u8> {
+    fn from(tx: &Transaction) -> Self {
+        bincode::serialize(tx).unwrap()
+    }
+}
+
+#[derive(Debug)]
+struct Block {
+    hash: blake3::Hash,
+    txs: Vec<Transaction>,
+}
+
+impl Block {
+    pub fn new(txs: impl Iterator<Item = Transaction>) -> Self {
+        let (txs, hasher) = txs.fold(
+            (Vec::new(), Blake3(blake3::Hasher::new())),
+            |(mut txs, mut hasher), tx| {
+                tx.hash(&mut hasher);
+                //hasher.update(tx.into);
+                txs.push(tx);
+                (txs, hasher)
+            },
+        );
+        Self {
+            txs,
+            hash: hasher.output(),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Rpc {
+    tx: Sender<Message>,
+}
+
+impl Rpc {
+    pub fn new(tx: Sender<Message>) -> Self {
+        Self { tx }
+    }
+
+    pub async fn run(mut self) {
+        let delay = std::time::Duration::from_secs(1);
+        loop {
+            let msg = Message::NewTx(Transaction::random());
+            self.send(msg).await;
+            tokio::time::sleep(delay).await;
+        }
+    }
+
+    #[tracing::instrument(ret)]
+    async fn send(&mut self, msg: Message) {
+        if let Err(e) = self.tx.send(msg).await {
+            warn!("Failed to send transaction: ({e})");
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Sequencer {
+    rx: Receiver<Message>,
+    pool: VecDeque<Transaction>,
+    chain: Vec<Block>,
+}
+
+impl Sequencer {
+    pub fn new(rx: Receiver<Message>) -> Self {
+        Self {
+            rx,
+            pool: Default::default(),
+            chain: Default::default(),
+        }
+    }
+
+    pub async fn run(mut self) {
+        loop {
+            let next_block_time = &std::time::Instant::now()
+                .checked_add(std::time::Duration::from_secs(4))
+                .unwrap();
+            while std::time::Instant::now().le(next_block_time) {
+                self.recv().await;
+            }
+            self.mine();
+        }
+    }
+
+    #[tracing::instrument(ret)]
+    async fn recv(&mut self) {
+        match tokio::time::timeout(std::time::Duration::from_secs(1), self.rx.recv()).await {
+            //match self.rx.recv_timeout(std::time::Duration::from_secs(1)) {
+            Err(e) => info!("Timed out waiting for message {e}"),
+            Ok(Some(msg)) => match msg {
+                Message::NewTx(tx) => {
+                    self.pool.push_back(tx);
+                }
+                _ => todo!(),
+            },
+            Ok(None) => {
+                info!("No message")
+            }
+        }
+    }
+
+    #[tracing::instrument(ret)]
+    fn mine(&mut self) {
+        let block = Block::new(self.pool.drain(..));
+        self.chain.push(block);
+    }
+}
+
+#[derive(Debug)]
+enum Message {
+    NewTx(Transaction),
+    GetLatestBlock,
+    LatestBlock(Block),
+}
+
+#[tokio::main]
+async fn main() -> eyre::Result<()> {
+    tracing_subscriber::fmt::init();
+
+    let (tx, rx) = channel::<Message>(100);
+
+    let handles = vec![
+        tokio::spawn(Rpc::new(tx).run()),
+        tokio::spawn(Sequencer::new(rx).run()),
+    ];
+
+    for h in handles {
+        h.await.map_err(|_| eyre::eyre!("Failed on await"))?;
+    }
+
+    Ok(())
+}
