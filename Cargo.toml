@@ -28,4 +28,5 @@ members = [
   "kv",
   "exercism/*",
   "twr",
+  "actor",
 ]

@@ -1,0 +1,15 @@
+[package]
+name = "actor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+toml = "0.8.19"
+serde = { version = "1.0.215", features = ["derive"] }
+eyre = "0.6.12"
+alloy = { version = "0.6", features = ["contract"] }
+tokio = { version = "1.41.1", features = ["full"] }
+tokio-util = "0.7.12"
+actix = "0.13.5"
+ctrlc = "3.1.0"
+duration-string = { version = "0.4.0", features = ["serde"] }
