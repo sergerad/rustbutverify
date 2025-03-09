@@ -15,5 +15,6 @@ fn main() -> Result<()> {
     }
 
     println!("{}", Error::Generic("hellowirl".to_string()));
+
     Ok(())
 }

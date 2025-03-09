@@ -187,13 +187,10 @@ async fn main() -> eyre::Result<()> {
 
     let (tx, rx) = std::sync::mpsc::channel::<Message>();
 
-    let mut handles = Vec::new();
-    handles.push(std::thread::spawn(|| {
-        Rpc::new(tx).run();
-    }));
-    handles.push(std::thread::spawn(|| {
-        Sequencer::new(rx).run();
-    }));
+    let handles = vec![
+        std::thread::spawn(|| Rpc::new(tx).run()),
+        std::thread::spawn(|| Sequencer::new(rx).run()),
+    ];
 
     for h in handles {
         h.join().map_err(|_| eyre::eyre!("Failed on join"))?;

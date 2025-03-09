@@ -7,4 +7,3 @@ edition = "2021"
 
 [dev-dependencies]
 parameterized = "2.0.0"
-

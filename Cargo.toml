@@ -2,24 +2,30 @@
 
 resolver = "2"
 members = [
-	"builder",
-	"errors",
-	"list",
-	"matrix",
-	"ops",
-	"orphan",
-	"starter",
-	"spinlock",
-	"channel",
-	"associated",
-	"lifetimes",
+  # ZK-SNARK
+  "polynomial",
+  "lagrange",
+  "mle",
+  "sumcheck",
+  # Other
+  "builder",
+  "errors",
+  "list",
+  "matrix",
+  "ops",
+  "orphan",
+  "starter",
+  "spinlock",
+  "channel",
+  "associated",
+  "lifetimes",
   "constraint-graph",
   "problems",
-	# ZK-SNARK
-	"polynomial",
-	"lagrange",
-	"mle",
-	"sumcheck",
-  # Exercism
-	"exercism/*", "chain-game", "mpsc", "smolchain", "smolchain-async",
+  "chain-game",
+  "mpsc",
+  "smolchain",
+  "smolchain-async",
+  "kv",
+  "exercism/*",
+  "twr",
 ]
