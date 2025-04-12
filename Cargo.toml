@@ -30,4 +30,5 @@ members = [
   "twr",
   "actor",
   "cycles",
+  "send",
 ]
